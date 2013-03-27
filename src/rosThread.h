@@ -1,11 +1,14 @@
 #include "navigationController.h"
+#include "navigationISL/robotInfo.h"
+#include "navigationISL/neighborInfo.h"
 #include <QThread>
 #include <QObject>
 #include <ros/ros.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Pose.h>
+
 #include <QTimer>
-#include "navigationISL/robotInfo.h"
+
 #define numOfRobots 5
 
 class RosThread:public QObject
@@ -25,6 +28,8 @@ public:
 private:
      bool shutdown;
 
+  //   navigationISL::robotInfo currentStatus;
+
      QTimer* poseUpdateTimer;
 
      QTimer* networkUpdateTimer;
@@ -33,11 +38,20 @@ private:
 
      ros::Subscriber amclSub;
 
+     ros::Subscriber neighborInfoSubscriber;
+
      ros::Publisher robotinfoPublisher;
+
+     ros::Publisher coordinatorUpdatePublisher;
 
      void amclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg);
 
+     void neighborInfoCallback(navigationISL::neighborInfo neighborInfo);
+
      void poseUpdate(const ros::TimerEvent&);
+
+     void coordinatorUpdate(const ros::TimerEvent&);
+
      void robotContoller(double [], int , double [][4], double [][3], double [][4], double, double []);
 
     // int numOfRobots;
@@ -58,7 +72,7 @@ public slots:
 
      void shutdownROS();
 
-     void networkUpdate();
+
 signals:
    void rosFinished();
    void  rosStarted();
