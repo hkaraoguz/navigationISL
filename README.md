@@ -1,4 +1,4 @@
-islNavigation
+navigationISL
 =============
 
 ISL Navigation package 
