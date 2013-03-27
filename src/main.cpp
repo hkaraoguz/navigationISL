@@ -9,21 +9,28 @@ int main(int argc,char** argv){
 
     QApplication app(argc,argv);
 
+
+
     ros::init(argc,argv,"navigationISL");
 
     RosThread* rosthread  = new RosThread;
 
-    QThread worker;
+    QThread* worker = new QThread(&app);
 
-    rosthread->moveToThread(&worker);
-
-
-    QObject::connect(&worker,SIGNAL(finished()),rosthread,SLOT(deleteLater()));
-
-    QObject::connect(&worker,SIGNAL(started()),rosthread,SLOT(work()));
+    rosthread->moveToThread(worker);
 
 
-    worker.start();
+   // QObject(&app,SIGNAL(aboutToQuit()),rosthread,SLOT(shutdownROS()));
+
+    QObject::connect(rosthread,SIGNAL(rosFinished()),worker,SLOT(quit()));
+    QObject::connect(worker,SIGNAL(finished()),&app,SLOT(quit()));
+
+    QObject::connect(worker,SIGNAL(finished()),rosthread,SLOT(deleteLater()));
+
+    QObject::connect(worker,SIGNAL(started()),rosthread,SLOT(work()));
+
+
+    worker->start();
 
 
     //ros::spin();

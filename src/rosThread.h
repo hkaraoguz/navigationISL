@@ -20,7 +20,7 @@ public:
 
 public:
 
-     void shutdownROS();
+
 
 private:
      bool shutdown;
@@ -56,9 +56,11 @@ private:
 public slots:
      void work();
 
+     void shutdownROS();
+
      void networkUpdate();
 signals:
-
+   void rosFinished();
    void  rosStarted();
    void  rosStartFailed();
 

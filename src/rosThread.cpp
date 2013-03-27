@@ -1,4 +1,5 @@
 #include "rosThread.h"
+#include <QDebug>
 
 RosThread::RosThread()
 {
@@ -69,8 +70,11 @@ void RosThread::work(){
 
     }
 
+    qDebug()<<"I am quitting";
 
+    ros::shutdown();
 
+    emit rosFinished();
 
 
 }
