@@ -39,7 +39,7 @@ rosbuild_genmsg()
 #common commands for building c++ executables and libraries
 #common commands for building c++ executables and libraries
 rosbuild_add_library(${PROJECT_NAME} src/main.cpp)
-target_link_libraries(${PROJECT_NAME} mpfr ${QT_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} mpfr ${QT_LIBRARIES} qjson)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 rosbuild_add_executable(navigation src/main.cpp src/navigationController.cpp src/navigationController.h ${navigationISL_SOURCES} ${navigationISL_HEADERS_MOC})

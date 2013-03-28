@@ -1,5 +1,8 @@
 #include "rosThread.h"
 #include <QDebug>
+#include <qjson/parser.h>
+#include <QDir>
+#include <QFile>
 
 RosThread::RosThread()
 {
@@ -23,12 +26,20 @@ RosThread::RosThread()
 
 void RosThread::work(){
 
-    //  int argc; // Player Main() method does not take argument
-    //  char **argv; // What to do with argc and argv??
+    QString path = QDir::homePath();
+    path.append("/fuerte_workspace/sandbox/configISL.json");
 
-    // const M_string nnn;
+    if(!readConfigFile(path)){
 
-    //   ros::init(argc,argv,"ISLFramework");
+        qDebug()<< "Read Config File Failed!!!";
+
+        ros::shutdown();
+
+        emit rosFinished();
+
+        return;
+    }
+
 
     if(!ros::ok()){
 
@@ -58,7 +69,7 @@ void RosThread::work(){
 
     while(ros::ok()){
 
-        NavigationController::robotContoller(vel, numOfRobots, bin, bt, b_rs, ro, kkLimits);
+        NavigationController::robotContoller(vel, numOfRobots, bin, bt, b_rs, ro, kkLimits, robot.robotID);
 
         //   ros::spinOnce();
 
@@ -86,8 +97,10 @@ void RosThread::shutdownROS()
 }
 void RosThread::amclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
 {
-    bin[1][1] = msg->pose.pose.position.x;
-    bin[1][2] = msg->pose.pose.position.y;
+    bin[robot.robotID][1] = msg->pose.pose.position.x;
+    bin[robot.robotID][2] = msg->pose.pose.position.y;
+
+
     bin[1][3] = 0.33;
 
    // ROS_INFO("position x %4.2f position y %4.2f orientation %4.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.orientation.z*180/3.14);
@@ -102,7 +115,7 @@ void RosThread::neighborInfoCallback(navigationISL::neighborInfo neighborInfo)
 
     int num = str.toInt();
 
-    if(num > 1 && num < numOfRobots){
+    if(num > 0 && num < numOfRobots){
         bin[num][1] = neighborInfo.posX;
         bin[num][2] = neighborInfo.posY;
         bin[num][3] = neighborInfo.radius;
@@ -147,6 +160,51 @@ void RosThread::coordinatorUpdate(const ros::TimerEvent&)
     info.posY = bin[1][2];
 
     this->coordinatorUpdatePublisher.publish(info);
+
+
+
+}
+bool RosThread::readConfigFile(QString filename)
+{
+    QFile file(filename);
+
+    if(!file.exists()) return false;
+
+    if(!file.open(QFile::ReadOnly)) return false;
+
+    QJson::Parser parser;
+
+    bool ok;
+
+    QVariantMap result = parser.parse(&file,&ok).toMap();
+
+    if(!ok){
+
+        file.close();
+        qDebug()<<"Fatal reading error";
+
+        return false;
+    }
+    else
+    {
+       // qDebug()<<result["numrobots"].toString();
+
+        int numrobots = result["numrobots"].toInt();
+
+        poseUpdatePeriod = result["Tc"].toInt();
+
+        coordinatorUpdatePeriod = result["Tg"].toInt();
+
+        robot.robotID = result["robotID"].toInt();
+
+        int iscoord =   result["iscoordinator"].toInt();
+        if(iscoord == 1) this->robot.isCoordinator = true;
+
+        this->robot.radius = result["radius"].toDouble();
+
+    }
+    file.close();
+    return true;
 
 
 

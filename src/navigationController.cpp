@@ -3,7 +3,7 @@
 
 
 // Alpha, Beta
-void NavigationController::fcn_A_B(int numOfRobots, mpfr_t A, mpfr_t B, double b_[][4], double bt_[][3],  double brs_[][4], double ro)
+void NavigationController::fcn_A_B(int numOfRobots, mpfr_t A, mpfr_t B, double b_[][4], double bt_[][3],  double brs_[][4], double ro, int rID)
 {
     //mpfr_t A, B;
     mpfr_t temp;
@@ -36,43 +36,15 @@ void NavigationController::fcn_A_B(int numOfRobots, mpfr_t A, mpfr_t B, double b
     */
     mpfr_set_d(B, 1.0, MPFR_RND);
 
-    for(int i=2;i<=numOfRobots;i++)
+    for(int i=1;i<=numOfRobots;i++)
     {
-        double  dist=-1;
-
-        if (b_[i][3]!=0)
+        if (i!=rID)
         {
-            dist = abs(pow((b_[1][1] - b_[i][1]),2) + pow((b_[1][2] - b_[i][2]),2) -pow((b_[1][3]+b_[i][3]),2));
-            /*
-            if (dist<0)
+            double  dist=-1;
+
+            if (b_[i][3]!=0)
             {
-                int dedede=1;
-            }
-            */
-        }
-        else if (brs_[i][3]!=0)
-        {
-            dist = abs(pow((b_[1][1] - brs_[i][1]),2) + pow((b_[1][2] - brs_[i][2]),2) -pow((b_[1][3]+brs_[i][3]),2));
-        }
-
-        if (dist>0)
-        {
-            mpfr_set_d(temp, dist, MPFR_RND);
-            mpfr_mul(B, B, temp, MPFR_RND);
-        }
-    }
-
-
-    // others
-    for(int i=2;i<=numOfRobots;i++)
-    {
-        for(int j=(i+1);j<=numOfRobots;j++)
-        {
-            double dist=-1;
-
-            if ((b_[i][3]!=0) && (b_[j][3]!=0))
-            {
-                dist = abs( pow((b_[i][1] - b_[j][1]),2) + pow((b_[i][2] - b_[j][2]),2) -pow((b_[i][3]+b_[j][3]),2));
+                dist = abs(pow((b_[rID][1] - b_[i][1]),2) + pow((b_[rID][2] - b_[i][2]),2) -pow((b_[rID][3]+b_[i][3]),2));
                 /*
                 if (dist<0)
                 {
@@ -80,23 +52,57 @@ void NavigationController::fcn_A_B(int numOfRobots, mpfr_t A, mpfr_t B, double b
                 }
                 */
             }
-            else if ((brs_[i][3]!=0) && (b_[j][3]!=0))
+            else if (brs_[i][3]!=0)
             {
-                dist =abs( pow((brs_[i][1] - b_[j][1]),2) + pow((brs_[i][2] - b_[j][2]),2) -pow((brs_[i][3]+b_[j][3]),2));
-            }
-            else if ((b_[i][3]!=0) && (brs_[j][3]!=0))
-            {
-                dist =abs( pow((b_[i][1] - brs_[j][1]),2) + pow((b_[i][2] - brs_[j][2]),2) -pow((b_[i][3]+brs_[j][3]),2));
-            }
-            else if ((brs_[i][3]!=0) && (brs_[j][3]!=0))
-            {
-                dist =abs( pow((brs_[i][1] - brs_[j][1]),2) + pow((brs_[i][2] - brs_[j][2]),2) -pow((brs_[i][3]+brs_[j][3]),2));
+                dist = abs(pow((b_[rID][1] - brs_[i][1]),2) + pow((b_[rID][2] - brs_[i][2]),2) -pow((b_[rID][3]+brs_[i][3]),2));
             }
 
             if (dist>0)
             {
                 mpfr_set_d(temp, dist, MPFR_RND);
                 mpfr_mul(B, B, temp, MPFR_RND);
+            }
+        }
+    }
+
+
+    // others
+    for(int i=1;i<=numOfRobots;i++)
+    {
+        for(int j=(i+1);j<=numOfRobots;j++)
+        {
+            if ( (i!=rID) && (j!=rID))
+            {
+                double dist=-1;
+
+                if ((b_[i][3]!=0) && (b_[j][3]!=0))
+                {
+                    dist = abs( pow((b_[i][1] - b_[j][1]),2) + pow((b_[i][2] - b_[j][2]),2) -pow((b_[i][3]+b_[j][3]),2));
+                    /*
+                    if (dist<0)
+                    {
+                        int dedede=1;
+                    }
+                    */
+                }
+                else if ((brs_[i][3]!=0) && (b_[j][3]!=0))
+                {
+                    dist =abs( pow((brs_[i][1] - b_[j][1]),2) + pow((brs_[i][2] - b_[j][2]),2) -pow((brs_[i][3]+b_[j][3]),2));
+                }
+                else if ((b_[i][3]!=0) && (brs_[j][3]!=0))
+                {
+                    dist =abs( pow((b_[i][1] - brs_[j][1]),2) + pow((b_[i][2] - brs_[j][2]),2) -pow((b_[i][3]+brs_[j][3]),2));
+                }
+                else if ((brs_[i][3]!=0) && (brs_[j][3]!=0))
+                {
+                    dist =abs( pow((brs_[i][1] - brs_[j][1]),2) + pow((brs_[i][2] - brs_[j][2]),2) -pow((brs_[i][3]+brs_[j][3]),2));
+                }
+
+                if (dist>0)
+                {
+                    mpfr_set_d(temp, dist, MPFR_RND);
+                    mpfr_mul(B, B, temp, MPFR_RND);
+                }
             }
         }
     }
@@ -135,43 +141,46 @@ void NavigationController::fcn_A_B(int numOfRobots, mpfr_t A, mpfr_t B, double b
 
 
 
-void NavigationController::fcn_dAdx(mpfr_t dAdx, mpfr_rnd_t MPFR_RND, double b_[][4], double bt_[][3])
+void NavigationController::fcn_dAdx(mpfr_t dAdx, mpfr_rnd_t MPFR_RND, double b_[][4], double bt_[][3], int rID)
 {
-    mpfr_set_d(dAdx, 2*(b_[1][1]-bt_[1][1]), MPFR_RND);
+    mpfr_set_d(dAdx, 2*(b_[rID][1]-bt_[rID][1]), MPFR_RND);
 }
 
 
-void NavigationController::fcn_dAdy(mpfr_t dAdy, mpfr_rnd_t MPFR_RND, double b_[][4], double bt_[][3])
+void NavigationController::fcn_dAdy(mpfr_t dAdy, mpfr_rnd_t MPFR_RND, double b_[][4], double bt_[][3], int rID)
 {
-    mpfr_set_d(dAdy, 2*(b_[1][2]-bt_[1][2]), MPFR_RND);
+    mpfr_set_d(dAdy, 2*(b_[rID][2]-bt_[rID][2]), MPFR_RND);
 }
 
 
-void NavigationController::fcn_dBdx(int numOfRobots, mpfr_t dBdx, mpfr_t B, mpfr_rnd_t MPFR_RND, double b_[][4], double brs_[][4], double ro)
+void NavigationController::fcn_dBdx(int numOfRobots, mpfr_t dBdx, mpfr_t B, mpfr_rnd_t MPFR_RND, double b_[][4], double brs_[][4], double ro, int rID)
 {
     mpfr_t temp;
     mpfr_init (temp);
 
     mpfr_set_d(dBdx, 0.0, MPFR_RND);
-    for(int i=2;i<=numOfRobots;i++)
+    for(int i=1;i<=numOfRobots;i++)
     {
-        double val;
-        if (b_[i][3]!=0)
+        if (i!=rID)
         {
-            val = 2*(b_[1][1]-b_[i][1])/( pow((b_[1][1] - b_[i][1]),2) + pow((b_[1][2] - b_[i][2]),2) - pow((b_[1][3]+b_[i][3]),2) );
-            mpfr_set_d(temp, val, MPFR_RND);
-            mpfr_add(dBdx, dBdx, temp, MPFR_RND);
+            double val;
+            if (b_[i][3]!=0)
+            {
+                val = 2*(b_[rID][1]-b_[i][1])/( pow((b_[rID][1] - b_[i][1]),2) + pow((b_[rID][2] - b_[i][2]),2) - pow((b_[rID][3]+b_[i][3]),2) );
+                mpfr_set_d(temp, val, MPFR_RND);
+                mpfr_add(dBdx, dBdx, temp, MPFR_RND);
 
-        }
-        else if (brs_[i][3]!=0)
-        {
-            val = 2*(b_[1][1]-brs_[i][1])/( pow((b_[1][1] - brs_[i][1]),2) + pow((b_[1][2] - brs_[i][2]),2) - pow((b_[1][3]+brs_[i][3]),2) );
-            mpfr_set_d(temp, val, MPFR_RND);
-            mpfr_add(dBdx, dBdx, temp, MPFR_RND);
+            }
+            else if (brs_[i][3]!=0)
+            {
+                val = 2*(b_[rID][1]-brs_[i][1])/( pow((b_[rID][1] - brs_[i][1]),2) + pow((b_[rID][2] - brs_[i][2]),2) - pow((b_[rID][3]+brs_[i][3]),2) );
+                mpfr_set_d(temp, val, MPFR_RND);
+                mpfr_add(dBdx, dBdx, temp, MPFR_RND);
+            }
         }
     }
 
-    double val = (-2*b_[1][1])/ (pow((ro - b_[1][3]),2) - b_[1][1]*b_[1][1] - b_[1][2]*b_[1][2] ) ; // bounded
+    double val = (-2*b_[rID][1])/ (pow((ro - b_[rID][3]),2) - b_[rID][1]*b_[rID][1] - b_[rID][2]*b_[rID][2] ) ; // bounded
     mpfr_set_d(temp, val, MPFR_RND);
     mpfr_add(dBdx, dBdx, temp, MPFR_RND);
 
@@ -180,29 +189,32 @@ void NavigationController::fcn_dBdx(int numOfRobots, mpfr_t dBdx, mpfr_t B, mpfr
     mpfr_clear (temp);
 }
 
-void NavigationController::fcn_dBdy(int numOfRobots, mpfr_t dBdy, mpfr_t B, mpfr_rnd_t MPFR_RND, double b_[][4], double brs_[][4], double ro)
+void NavigationController::fcn_dBdy(int numOfRobots, mpfr_t dBdy, mpfr_t B, mpfr_rnd_t MPFR_RND, double b_[][4], double brs_[][4], double ro, int rID)
 {
     mpfr_t temp;
     mpfr_init (temp);
 
     mpfr_set_d(dBdy, 0.0, MPFR_RND);
-    for(int i=2;i<=numOfRobots;i++)
+    for(int i=1;i<=numOfRobots;i++)
     {
-        double val;
-        if (b_[i][3]!=0)
+        if (i!=rID)
         {
-            val = 2*(b_[1][2]-b_[i][2])/( pow((b_[1][1] - b_[i][1]),2) + pow((b_[1][2] - b_[i][2]),2) - pow((b_[1][3]+b_[i][3]),2) );
-            mpfr_set_d(temp, val, MPFR_RND);
-            mpfr_add(dBdy, dBdy, temp, MPFR_RND);
-        }
-        else if (brs_[i][3]!=0)
-        {
-            val = 2*(b_[1][2]-brs_[i][2])/( pow((b_[1][1] - brs_[i][1]),2) + pow((b_[1][2] - brs_[i][2]),2) - pow((b_[1][3]+brs_[i][3]),2) );
-            mpfr_set_d(temp, val, MPFR_RND);
-            mpfr_add(dBdy, dBdy, temp, MPFR_RND);
+            double val;
+            if (b_[i][3]!=0)
+            {
+                val = 2*(b_[rID][2]-b_[i][2])/( pow((b_[rID][1] - b_[i][1]),2) + pow((b_[rID][2] - b_[i][2]),2) - pow((b_[rID][3]+b_[i][3]),2) );
+                mpfr_set_d(temp, val, MPFR_RND);
+                mpfr_add(dBdy, dBdy, temp, MPFR_RND);
+            }
+            else if (brs_[i][3]!=0)
+            {
+                val = 2*(b_[rID][2]-brs_[i][2])/( pow((b_[rID][1] - brs_[i][1]),2) + pow((b_[rID][2] - brs_[i][2]),2) - pow((b_[rID][3]+brs_[i][3]),2) );
+                mpfr_set_d(temp, val, MPFR_RND);
+                mpfr_add(dBdy, dBdy, temp, MPFR_RND);
+            }
         }
     }
-    double val = (-2*b_[1][2])/( pow((ro - b_[1][3]),2) - b_[1][1]*b_[1][1] - b_[1][2]*b_[1][2] ) ; // bounded
+    double val = (-2*b_[rID][2])/( pow((ro - b_[rID][3]),2) - b_[rID][1]*b_[rID][1] - b_[rID][2]*b_[rID][2] ) ; // bounded
     mpfr_set_d(temp, val, MPFR_RND);
     mpfr_add(dBdy, dBdy, temp, MPFR_RND);
 
@@ -496,7 +508,7 @@ void NavigationController::fcn_dFdy(mpfr_t dFdy, mpfr_t A, mpfr_t B, int kk, int
 }
 
 
-void NavigationController::robotContoller(double bout[], int numOfRobots, double bin_[][4], double bt_[][3], double b_rs_[][4], double ro, double kkLimits[])
+void NavigationController::robotContoller(double bout[], int numOfRobots, double bin_[][4], double bt_[][3], double b_rs_[][4], double ro, double kkLimits[], int rID)
 {
     mpfr_t A, B, dBdx, dBdy, dAdx, dAdy, dFdx, dFdy, norm, temp1, temp2,minusOne, two;
     mpfr_t logA_m, logB_m;// divlogBlogA;
@@ -525,7 +537,7 @@ void NavigationController::robotContoller(double bout[], int numOfRobots, double
     mpfr_init (two);
 
 
-    fcn_A_B(numOfRobots, A, B, bin_, bt_, b_rs_, ro);
+    fcn_A_B(numOfRobots, A, B, bin_, bt_, b_rs_, ro, rID);
 /*
     printf("\n");
     mpfr_out_str (stdout, 10, 0, A, MPFR_RND);
@@ -578,10 +590,10 @@ void NavigationController::robotContoller(double bout[], int numOfRobots, double
 
     kq=kk;
 
-    fcn_dAdx(dAdx, MPFR_RND, bin_, bt_);
-    fcn_dBdx(numOfRobots, dBdx, B, MPFR_RND, bin_, b_rs_, ro);
-    fcn_dAdy(dAdy, MPFR_RND, bin_, bt_);
-    fcn_dBdy(numOfRobots, dBdy, B, MPFR_RND, bin_, b_rs_, ro);
+    fcn_dAdx(dAdx, MPFR_RND, bin_, bt_, rID);
+    fcn_dBdx(numOfRobots, dBdx, B, MPFR_RND, bin_, b_rs_, ro, rID);
+    fcn_dAdy(dAdy, MPFR_RND, bin_, bt_, rID);
+    fcn_dBdy(numOfRobots, dBdy, B, MPFR_RND, bin_, b_rs_, ro, rID);
 
 
     fcn_dFdx(dFdx, A, B, kk, kq, dAdx, dBdx, MPFR_RND);

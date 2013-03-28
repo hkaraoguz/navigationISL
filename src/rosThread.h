@@ -11,6 +11,14 @@
 
 #define numOfRobots 5
 
+class Robot
+{
+public:
+    int robotID;
+    bool isCoordinator;
+    double radius;
+};
+
 class RosThread:public QObject
 {
     Q_OBJECT
@@ -19,20 +27,18 @@ public:
 
     RosThread();
 
+    Robot robot;
+
    // RosThread(int argc, char **argv, std::string nodeName);
 
 public:
 
-
+     bool readConfigFile(QString filename);
 
 private:
      bool shutdown;
 
   //   navigationISL::robotInfo currentStatus;
-
-     QTimer* poseUpdateTimer;
-
-     QTimer* networkUpdateTimer;
 
      ros::NodeHandle n;
 
@@ -65,7 +71,8 @@ private:
      double kkLimits[2]; // upper and lower bounds of parameters in navigation function
 
      int poseUpdatePeriod;
-     int networkUpdatePeriod;
+     int coordinatorUpdatePeriod;
+
 
 public slots:
      void work();
