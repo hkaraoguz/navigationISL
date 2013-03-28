@@ -7,9 +7,9 @@ RosThread::RosThread()
 
     //  connect(poseUpdateTimer,SIGNAL(timeout()),this,SLOT(poseUpdate()));
 
-    networkUpdateTimer = new QTimer(this);
+  // networkUpdateTimer = new QTimer(this);
 
-    connect(networkUpdateTimer,SIGNAL(timeout()),this,SLOT(networkUpdate()));
+   // connect(networkUpdateTimer,SIGNAL(timeout()),this,SLOT(networkUpdate()));
 
 
 }
@@ -106,7 +106,7 @@ void RosThread::neighborInfoCallback(navigationISL::neighborInfo neighborInfo)
         bin[num][1] = neighborInfo.posX;
         bin[num][2] = neighborInfo.posY;
         bin[num][3] = neighborInfo.radius;
-       // qDebug()<<"robot number "<<num;
+        qDebug()<<"robot number "<<num;
     }
     else qDebug()<<"Unknown robot id number";
 }
@@ -117,8 +117,8 @@ void RosThread::poseUpdate(const ros::TimerEvent&)
     navigationISL::robotInfo info;
 
     info.neighbors.resize(2);
-    info.neighbors[0] = "IRobot3";
-    info.neighbors[1] = "mehmet";
+    info.neighbors[0] = "IRobot1";
+    info.neighbors[1] = "IRobot3";
 
     info.posX = 5;
 
