@@ -1,4 +1,8 @@
+#include <tf/tf.h>
+#include <geometry_msgs/Twist.h>
+
 #include "rosThread.h"
+
 #include <QDebug>
 #include <qjson/parser.h>
 #include <QDir>
@@ -53,13 +57,16 @@ void RosThread::work(){
     this->amclSub = n.subscribe("amcl_pose",2,&RosThread::amclPoseCallback,this);
 
     this->robotinfoPublisher = n.advertise<navigationISL::robotInfo>("navigationISL/robotInfo",1);
+    this->turtlebotVelPublisher = n.advertise<geometry_msgs::Twist>("cmd_vel",1);
+
+    this->amclInitialPosePublisher = n.advertise<geometry_msgs::PoseWithCovarianceStamped>("initialpose",1,true);
 
     this->coordinatorUpdatePublisher = n.advertise<navigationISL::robotInfo>("navigationISL/coordinatorUpdate",1);
 
     this->neighborInfoSubscriber = n.subscribe("communicationISL/neighborInfo",1,&RosThread::neighborInfoCallback,this);
     //  ros::AsyncSpinner spinner(2);
 
-    ros::Timer timer = n.createTimer(ros::Duration(2), &RosThread::poseUpdate,this);
+    n.createTimer(ros::Duration(poseUpdatePeriod), &RosThread::poseUpdate,this);
 
     // spinner.start();
 
@@ -67,9 +74,23 @@ void RosThread::work(){
 
     ros::Rate loop(10);
 
-    while(ros::ok()){
+    geometry_msgs::PoseWithCovarianceStamped initialpose;
 
-        NavigationController::robotContoller(vel, numOfRobots, bin, bt, b_rs, ro, kkLimits, robot.robotID);
+    initialpose.pose.pose.position.x = 0;
+
+    initialpose.pose.pose.position.y = 0;
+
+   // geometry_msgs::Quaternion k();
+
+    initialpose.pose.pose.orientation = tf::createQuaternionMsgFromYaw(0);
+
+    amclInitialPosePublisher.publish(initialpose);
+
+    while(ros::ok())
+    {
+
+
+        NavigationController::robotContoller(vel, numOfRobots, 4, 150, bin, bt, b_rs, bp, ro, kkLimits, robot.robotID);
 
         //   ros::spinOnce();
 
@@ -99,9 +120,59 @@ void RosThread::amclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped:
 {
     bin[robot.robotID][1] = msg->pose.pose.position.x;
     bin[robot.robotID][2] = msg->pose.pose.position.y;
+    bin[robot.robotID][3] = robot.radius;
+
+    double radYaw = tf::getYaw(msg->pose.pose.orientation);
+
+    double calYaw = atan2(vel[1],vel[0]);
+
+    double diffYaw = radYaw-calYaw;
+
+    geometry_msgs::Twist twist;
+
+    twist.linear.x = 0;
+    twist.linear.y = 0;
+    twist.linear.z = 0;
+
+    twist.angular.x = 0;
+    twist.angular.y = 0;
+    twist.angular.z = 0;
+
+    if(fabs(diffYaw) > 0.09)
+    {
+        if(diffYaw > 0)
+        {
+
+            twist.angular.z = 0.1;
+
+            //turtlebotVelPublisher.publish(twist);
+
+        }
+        else
+        {
+
+            twist.angular.z = -0.1;
 
 
-    bin[1][3] = 0.33;
+
+        }
+
+        turtlebotVelPublisher.publish(twist);
+
+    }
+    else
+    {
+
+        if(fabs(robot.targetX-bin[robot.robotID][1]) > 10 && fabs(robot.targetY-bin[robot.robotID][2] > 10))
+
+            twist.linear.x = 0.2;
+        else
+            twist.linear.x = 0;
+
+        turtlebotVelPublisher.publish(twist);
+
+
+    }
 
    // ROS_INFO("position x %4.2f position y %4.2f orientation %4.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.orientation.z*180/3.14);
 
@@ -133,15 +204,15 @@ void RosThread::poseUpdate(const ros::TimerEvent&)
     info.neighbors[0] = "IRobot1";
     info.neighbors[1] = "IRobot3";
 
-    info.posX = 5;
+    info.posX = bin[robot.robotID][1];
 
-    info.posY = 5;
+    info.posY = bin[robot.robotID][2];
 
-    info.targetX = 10;
+    info.targetX = robot.targetX;
 
-    info.targetY = 40;
+    info.targetY = robot.targetY;
 
-    info.radius = 0.33;
+    info.radius = robot.radius;
 
 
     robotinfoPublisher.publish(info);
@@ -155,9 +226,9 @@ void RosThread::coordinatorUpdate(const ros::TimerEvent&)
 {
     navigationISL::robotInfo info;
 
-    info.posX = bin[1][1];
+    info.posX = bin[robot.robotID][1];
 
-    info.posY = bin[1][2];
+    info.posY = bin[robot.robotID][2];
 
     this->coordinatorUpdatePublisher.publish(info);
 
@@ -187,20 +258,73 @@ bool RosThread::readConfigFile(QString filename)
     }
     else
     {
-       // qDebug()<<result["numrobots"].toString();
+
 
         int numrobots = result["numrobots"].toInt();
 
+        qDebug()<<result["numrobots"].toString();
+
         poseUpdatePeriod = result["Tc"].toInt();
+
+        qDebug()<<result["Tc"].toString();
 
         coordinatorUpdatePeriod = result["Tg"].toInt();
 
+        qDebug()<<result["Tg"].toString();
+
         robot.robotID = result["robotID"].toInt();
+
+        qDebug()<<result["robotID"].toString();
 
         int iscoord =   result["iscoordinator"].toInt();
         if(iscoord == 1) this->robot.isCoordinator = true;
 
         this->robot.radius = result["radius"].toDouble();
+
+        qDebug()<<result["radius"].toString();
+
+        this->robot.targetX = result["targetX"].toDouble();
+
+        qDebug()<<result["targetX"].toString();
+
+        this->robot.targetY = result["targetY"].toDouble();
+
+        qDebug()<<result["targetY"].toString();
+        QVariantMap nestedMap = result["Obstacles"].toMap();
+
+        this->obstacles.resize(nestedMap.size());
+
+        int count = 0;
+        foreach (QVariant plugin, nestedMap["Obstacle"].toList()) {
+
+            Obstacle obstacle;
+
+            obstacle.id = plugin.toMap()["id"].toInt();
+
+            qDebug()<<obstacle.id;
+
+            obstacle.radius = plugin.toMap()["radius"].toDouble();
+
+            obstacle.x= plugin.toMap()["x"].toDouble();
+
+            obstacle.y = plugin.toMap()["y"].toDouble();
+
+          //  if(coord == 1) robot->setCoordinator(true);
+
+            obstacles[obstacle.id] = obstacle;
+
+            count++;
+           // qDebug() << "\t-" << plugin.toMap()["ip"].toString();
+        }
+        for(int i = 0 ; i < obstacles.size(); i++)
+        {
+
+            bp[i+1][1] = obstacles[i].x;
+            bp[i+1][2] = obstacles[i].y;
+            bp[i+1][3] = obstacles[i].radius;
+
+        }
+
 
     }
     file.close();

@@ -1,13 +1,18 @@
-#include "navigationController.h"
-#include "navigationISL/robotInfo.h"
-#include "navigationISL/neighborInfo.h"
-#include <QThread>
-#include <QObject>
+
 #include <ros/ros.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Pose.h>
-
+#include "navigationController.h"
+#include "navigationISL/robotInfo.h"
+#include "navigationISL/neighborInfo.h"
 #include <QTimer>
+#include <QVector>
+#include <QThread>
+#include <QObject>
+
+
+
+
 
 #define numOfRobots 5
 
@@ -17,6 +22,19 @@ public:
     int robotID;
     bool isCoordinator;
     double radius;
+    double targetX;
+    double targetY;
+
+};
+class Obstacle
+{
+public:
+    int id;
+    double radius;
+    double x;
+    double y;
+
+
 };
 
 class RosThread:public QObject
@@ -28,6 +46,8 @@ public:
     RosThread();
 
     Robot robot;
+
+    QVector<Obstacle> obstacles;
 
    // RosThread(int argc, char **argv, std::string nodeName);
 
@@ -50,6 +70,10 @@ private:
 
      ros::Publisher coordinatorUpdatePublisher;
 
+     ros::Publisher turtlebotVelPublisher;
+
+     ros::Publisher amclInitialPosePublisher;
+
      void amclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg);
 
      void neighborInfoCallback(navigationISL::neighborInfo neighborInfo);
@@ -69,7 +93,7 @@ private:
      double b_rs[numOfRobots+1][4]; // robots' positions within sensing range
      double ro;
      double kkLimits[2]; // upper and lower bounds of parameters in navigation function
-
+     double bp[5][4];
      int poseUpdatePeriod;
      int coordinatorUpdatePeriod;
 
