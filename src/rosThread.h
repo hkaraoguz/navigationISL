@@ -2,6 +2,8 @@
 #include <ros/ros.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Pose.h>
+#include <geometry_msgs/Twist.h>
+#include <nav_msgs/Odometry.h>
 #include "navigationController.h"
 #include "navigationISL/robotInfo.h"
 #include "navigationISL/neighborInfo.h"
@@ -9,9 +11,6 @@
 #include <QVector>
 #include <QThread>
 #include <QObject>
-
-
-
 
 
 #define numOfRobots 5
@@ -66,6 +65,8 @@ private:
 
      ros::Subscriber neighborInfoSubscriber;
 
+     ros::Subscriber turtlebotOdometrySubscriber;
+
      ros::Publisher robotinfoPublisher;
 
      ros::Publisher coordinatorUpdatePublisher;
@@ -76,6 +77,8 @@ private:
 
      void amclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg);
 
+     void turtlebotOdometryCallback(const nav_msgs::Odometry & msg);
+
      void neighborInfoCallback(navigationISL::neighborInfo neighborInfo);
 
      void poseUpdate(const ros::TimerEvent&);
@@ -84,6 +87,9 @@ private:
 
      void robotContoller(double [], int , double [][4], double [][3], double [][4], double, double []);
 
+     void calculateTurn(double desired, double current);
+
+     void sendVelocityCommand();
     // int numOfRobots;
 
      double vel[2]; // velocity vector
@@ -97,6 +103,7 @@ private:
      int poseUpdatePeriod;
      int coordinatorUpdatePeriod;
 
+     geometry_msgs::Twist velocityVector;
 
 public slots:
      void work();
