@@ -57,9 +57,9 @@ void RosThread::work(){
 
     emit rosStarted();
 
-   // this->amclSub = n.subscribe("amcl_pose",2,&RosThread::amclPoseCallback,this);
+    this->amclSub = n.subscribe("amcl_pose",2,&RosThread::amclPoseCallback,this);
     this->neighborInfoSubscriber = n.subscribe("communicationISL/neighborInfo",1,&RosThread::neighborInfoCallback,this);
-    this->turtlebotOdometrySubscriber = n.subscribe("odom",2,&RosThread::turtlebotOdometryCallback,this);
+   // this->turtlebotOdometrySubscriber = n.subscribe("odom",2,&RosThread::turtlebotOdometryCallback,this);
 
 
     this->robotinfoPublisher = n.advertise<navigationISL::robotInfo>("navigationISL/robotInfo",1);
@@ -91,17 +91,19 @@ void RosThread::work(){
 
     initialpose.pose.pose.orientation = tf::createQuaternionMsgFromYaw(0);
 
-    amclInitialPosePublisher.publish(initialpose);
+ //   amclInitialPosePublisher.publish(initialpose);
 
     ro = 800;
+
+    velocityVector.linear.x = 0.1;
 
     while(ros::ok())
     {
 
 
-      // NavigationController::robotContoller(vel, numOfRobots, 4, 150, bin, bt, b_rs, bp, ro, kkLimits, robot.robotID);
-
-       //this->sendVelocityCommand();
+       NavigationController::robotContoller(vel, numOfRobots, 4, 250, bin, bt, b_rs, bp, ro, kkLimits, robot.robotID);
+       qDebug()<<"Velocities: "<<vel[0]<<vel[1];
+       this->sendVelocityCommand();
         //   ros::spinOnce();
 
         //   loop.sleep();
@@ -128,27 +130,38 @@ void RosThread::shutdownROS()
 }
 void RosThread::amclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
 {
-    bin[robot.robotID][1] = msg->pose.pose.position.x;
-    bin[robot.robotID][2] = msg->pose.pose.position.y;
+    bin[robot.robotID][1] = msg->pose.pose.position.x*100;
+    bin[robot.robotID][2] = msg->pose.pose.position.y*100;
     bin[robot.robotID][3] = robot.radius;
 
+    btQuaternion odomquat(msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z,msg->pose.pose.orientation.w);
 
-
-    double radYaw = tf::getYaw(msg->pose.pose.orientation);
+    double d1,d2,radYaw;
+    btMatrix3x3(odomquat).getEulerYPR(radYaw,d1,d2);
+   // double radYaw = tf::getYaw(odomquat);
 
     qDebug()<<"Rad yaw: "<<radYaw;
+
+    double cradyaw = cos(radYaw);
+    double sradyaw = sin(radYaw);
 
    //vel[1] = -0.5;
 
    // vel[0] = 0.5;
 
-    double calYaw = atan2(-0.5,0.5);
+   // double calYaw = atan2((robot.targetY-bin[robot.robotID][2]),(robot.targetX-bin[robot.robotID][1]));
 
+    double calYaw = atan2(vel[1],vel[0]);
+
+    qDebug()<<"Bin: "<<bin[robot.robotID][1]<<"Bin 2: "<<bin[robot.robotID][2];
     qDebug()<<"Cal yaw: "<<calYaw;
+
+  /*  double ccalyaw = cos(calYaw);
+    double scalyaw = sin(calYaw);
 
     double diffYaw = radYaw-calYaw;
 
-    qDebug()<<"Diff yaw: "<<diffYaw;
+    qDebug()<<"Diff yaw: "<<diffYaw;*/
 
     geometry_msgs::Twist twist;
 
@@ -160,12 +173,15 @@ void RosThread::amclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped:
     twist.angular.y = 0;
     twist.angular.z = 0;
 
-    if(fabs(diffYaw) > 0.09)
+    velocityVector = twist;
+
+   /* if((fabs(ccalyaw - cradyaw) > (double)0.5 && ccalyaw*cradyaw < 0 )|| (fabs(scalyaw-sradyaw) > (double)0.5 && scalyaw*sradyaw < 0))
     {
-        if(diffYaw > 0)
+
+        if(calYaw >= 0)
         {
 
-            twist.angular.z = 0.1;
+            twist.angular.z = 0.3;
 
             //turtlebotVelPublisher.publish(twist);
 
@@ -173,7 +189,7 @@ void RosThread::amclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped:
         else
         {
 
-            twist.angular.z = -0.1;
+            twist.angular.z = -0.3;
 
 
 
@@ -181,22 +197,29 @@ void RosThread::amclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped:
 
       //  turtlebotVelPublisher.publish(twist);
 
+    }*/
+    if(fabs(radYaw-calYaw) > 15*M_PI/180)
+    {
+
+        calculateTurn(calYaw,radYaw);
+
+        return;
     }
     else
     {
 
-        if(fabs(robot.targetX-bin[robot.robotID][1]) > 10 && fabs(robot.targetY-bin[robot.robotID][2] > 10))
 
-            twist.linear.x = 0.2;
+        if(fabs(robot.targetX-bin[robot.robotID][1]) > 10 || fabs(robot.targetY-bin[robot.robotID][2]) > 10){
+            qDebug()<<"Linear";
+            velocityVector.linear.x = 0.15;
+        }
         else
-            twist.linear.x = 0;
+            velocityVector.linear.x = 0;
 
      //   turtlebotVelPublisher.publish(twist);
 
 
     }
-
-    velocityVector = twist;
    // ROS_INFO("position x %4.2f position y %4.2f orientation %4.2f",msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.orientation.z*180/3.14);
 
 }
@@ -457,7 +480,7 @@ void RosThread::turtlebotOdometryCallback(const nav_msgs::Odometry &msg)
       //  turtlebotVelPublisher.publish(twist);
 
     }*/
-    if(fabs(radYaw-calYaw) >= 3*M_PI/180)
+    if(fabs(radYaw-calYaw) >= 7*M_PI/180)
     {
 
         calculateTurn(calYaw,radYaw);
@@ -470,7 +493,7 @@ void RosThread::turtlebotOdometryCallback(const nav_msgs::Odometry &msg)
 
         if(fabs(robot.targetX-bin[robot.robotID][1]) > 10 || fabs(robot.targetY-bin[robot.robotID][2]) > 10){
             qDebug()<<"Linear";
-            velocityVector.linear.x = 0.2;
+            velocityVector.linear.x = 0.15;
         }
         else
             velocityVector.linear.x = 0;
@@ -514,6 +537,6 @@ void RosThread::calculateTurn(double desired, double current)
         dir = dir*-1;
     }
 
-    velocityVector.angular.z = dir*0.4;
+    velocityVector.angular.z = dir*0.35;
 
 }

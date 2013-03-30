@@ -110,7 +110,7 @@ void NavigationController::fcn_A_B(int numOfRobots, int numOfParts, double partD
     //parts
     for(int j=1;j<=numOfParts;j++)
     {
-        double dist = abs(pow((b_[1][1] - bp[j][1]),2) + pow((b_[1][2] - bp[j][2]),2) -pow((b_[1][3]+bp[j][3]),2));
+        double dist = abs(pow((b_[rID][1] - bp[j][1]),2) + pow((b_[rID][2] - bp[j][2]),2) -pow((b_[rID][3]+bp[j][3]),2));
         if (dist<partDist*partDist)
         {
             mpfr_set_d(temp, dist, MPFR_RND);
@@ -571,7 +571,8 @@ void NavigationController::robotContoller(double bout[], int numOfRobots, int nu
 
 
     fcn_A_B(numOfRobots, numOfParts, partDist, A, B, bin_, bt_, b_rs_, bp, ro, rID);
-/*
+
+    /*
     printf("\n");
     mpfr_out_str (stdout, 10, 0, A, MPFR_RND);
     printf("\n");
@@ -613,6 +614,7 @@ void NavigationController::robotContoller(double bout[], int numOfRobots, int nu
             kk=kkLimits[1];
     }
 
+/*
     if ( (kk<(numOfRobots + numOfRobots*(numOfRobots-1)/2)))
     {
         int temp;
@@ -620,7 +622,7 @@ void NavigationController::robotContoller(double bout[], int numOfRobots, int nu
         kk = abs(temp + (temp%2));
     }
 
-
+*/
     kq=kk;
 
     fcn_dAdx(dAdx, MPFR_RND, bin_, bt_, rID);
