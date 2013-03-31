@@ -100,8 +100,25 @@ private:
      double ro;
      double kkLimits[2]; // upper and lower bounds of parameters in navigation function
      double bp[5][4];
+
      int poseUpdatePeriod;
      int coordinatorUpdatePeriod;
+
+     // The robot's angle threshold while rotating in degrees
+     int angleThreshold;
+
+     // The robot's distance threshold for goal achievement in cms
+     int distanceThreshold;
+
+     // in m/sec linear velocity
+     double linearVelocity;
+
+     // in rad/sec rotational velocity
+     double angularVelocity;
+
+     int numrobots;
+
+     int partDist;
 
      geometry_msgs::Twist velocityVector;
 
