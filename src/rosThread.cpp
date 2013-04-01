@@ -70,9 +70,9 @@ void RosThread::work(){
     this->robotinfoPublisher = n.advertise<navigationISL::robotInfo>("navigationISL/robotInfo",1);
     //  ros::AsyncSpinner spinner(2);
 
-    ros::Timer pt = n.createTimer(ros::Duration(poseUpdatePeriod), &RosThread::poseUpdate,this);
+    pt = n.createTimer(ros::Duration(poseUpdatePeriod), &RosThread::poseUpdate,this);
 
-    ros::Timer ct = n.createTimer(ros::Duration(coordinatorUpdatePeriod),&RosThread::coordinatorUpdate,this);
+    ct = n.createTimer(ros::Duration(coordinatorUpdatePeriod),&RosThread::coordinatorUpdate,this);
 
     ros::Rate loop(10);
 
@@ -202,9 +202,13 @@ void RosThread::neighborInfoCallback(navigationISL::neighborInfo neighborInfo)
     int num = str.toInt();
 
     if(num > 0 && num < numOfRobots){
+
         bin[num][1] = neighborInfo.posX;
         bin[num][2] = neighborInfo.posY;
         bin[num][3] = neighborInfo.radius;
+
+        bt[num][1] = neighborInfo.targetX;
+        bt[num][2] = neighborInfo.targetY;
         qDebug()<<"robot number "<<num;
     }
     else qDebug()<<"Unknown robot id number";
@@ -213,10 +217,11 @@ void RosThread::neighborInfoCallback(navigationISL::neighborInfo neighborInfo)
 // Tc saniyede Komsulara kendi bilgisini gonderiyor
 void RosThread::poseUpdate(const ros::TimerEvent&)
 {
+
     navigationISL::robotInfo info;
 
     info.neighbors.resize(2);
-    info.neighbors[0] = "IRobot1";
+    info.neighbors[0] = "IRobot2";
     info.neighbors[1] = "IRobot3";
 
     info.posX = bin[robot.robotID][1];
@@ -239,13 +244,23 @@ void RosThread::poseUpdate(const ros::TimerEvent&)
 // Tg saniyede Coordinator a kendi konum bilgisini gonderiyor
 void RosThread::coordinatorUpdate(const ros::TimerEvent&)
 {
+    pt.stop();
+
     navigationISL::robotInfo info;
 
+    info.neighbors.resize(1);
+    info.neighbors[0] = "";
     info.posX = bin[robot.robotID][1];
 
     info.posY = bin[robot.robotID][2];
 
+    info.radius = 0;
+    info.targetX = 0;
+    info.targetY = 0;
+
     this->coordinatorUpdatePublisher.publish(info);
+
+    pt.start();
 
 }
 bool RosThread::readConfigFile(QString filename)

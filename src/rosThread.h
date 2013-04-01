@@ -120,6 +120,12 @@ private:
 
      int partDist;
 
+     // Pose update timer
+     ros::Timer pt;
+
+     // Coordinator update timer
+     ros::Timer ct;
+
      geometry_msgs::Twist velocityVector;
 
 public slots:
