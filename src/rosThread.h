@@ -23,6 +23,8 @@ public:
     double radius;
     double targetX;
     double targetY;
+    double initialX;
+    double initialY;
 
 };
 class Obstacle
@@ -58,6 +60,10 @@ private:
      bool shutdown;
 
   //   navigationISL::robotInfo currentStatus;
+
+     bool startNavigation;
+
+     void startModule();
 
      ros::NodeHandle n;
 
