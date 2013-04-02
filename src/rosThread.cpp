@@ -35,6 +35,16 @@ void RosThread::startModule()
     bin[robot.robotID][1] = this->robot.initialX;
     bin[robot.robotID][2] = this->robot.initialY;
 
+    poseFile.setFileName("../pose.txt");
+
+    poseFile.open(QFile::WriteOnly);
+
+    QTextStream stream(&poseFile);
+
+    stream<<QDateTime::currentDateTime().toTime_t()<<" "<<bin[robot.robotID][1]<<" "<<bin[robot.robotID][2]<<" "<<robot.radius<<"\n";
+
+    poseFile.close();
+
     geometry_msgs::PoseWithCovarianceStamped initialpose;
 
     initialpose.pose.pose.position.x = this->robot.initialX/100;
@@ -145,6 +155,21 @@ void RosThread::amclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped:
     bin[robot.robotID][1] = msg->pose.pose.position.x*100;
     bin[robot.robotID][2] = msg->pose.pose.position.y*100;
     bin[robot.robotID][3] = robot.radius;
+
+    if(!poseFile.exists())
+    {
+        poseFile.open(QFile::WriteOnly);
+    }
+    else
+    {
+        poseFile.open(QFile::Append);
+
+    }
+    QTextStream stream(&poseFile);
+
+    stream<<QDateTime::currentDateTime().toTime_t()<<" "<<bin[robot.robotID][1]<<" "<<bin[robot.robotID][2]<<" "<<robot.radius<<"\n";
+
+    poseFile.close();
 
     btQuaternion odomquat(msg->pose.pose.orientation.x,msg->pose.pose.orientation.y,msg->pose.pose.orientation.z,msg->pose.pose.orientation.w);
 

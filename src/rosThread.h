@@ -11,6 +11,8 @@
 #include <QVector>
 #include <QThread>
 #include <QObject>
+#include <QFile>
+#include <QDateTime>
 
 
 #define numOfRobots 5
@@ -106,6 +108,8 @@ private:
      double ro;
      double kkLimits[2]; // upper and lower bounds of parameters in navigation function
      double bp[5][4];
+
+     QFile poseFile;
 
      int poseUpdatePeriod;
      int coordinatorUpdatePeriod;
