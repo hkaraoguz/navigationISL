@@ -37,9 +37,11 @@ void RosThread::startModule()
 
     geometry_msgs::PoseWithCovarianceStamped initialpose;
 
-    initialpose.pose.pose.position.x = this->robot.initialX;
+    initialpose.pose.pose.position.x = this->robot.initialX/100;
 
-    initialpose.pose.pose.position.y = this->robot.initialY;
+    initialpose.pose.pose.position.y = this->robot.initialY/100;
+
+    initialpose.pose.pose.position.z = 0.1;
 
     initialpose.pose.pose.orientation = tf::createQuaternionMsgFromYaw(0);
 
@@ -98,6 +100,9 @@ void RosThread::work(){
     pt = n.createTimer(ros::Duration(poseUpdatePeriod), &RosThread::poseUpdate,this);
 
     ct = n.createTimer(ros::Duration(coordinatorUpdatePeriod),&RosThread::coordinatorUpdate,this);
+
+    ct.stop();
+    pt.stop();
 
     ros::Rate loop(10);
 
