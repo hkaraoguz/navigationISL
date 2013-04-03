@@ -270,9 +270,9 @@ void RosThread::poseUpdate(const ros::TimerEvent&)
 
     navigationISL::robotInfo info;
 
-    info.neighbors.resize(2);
-    info.neighbors[0] = "IRobot2";
-    info.neighbors[1] = "IRobot3";
+    info.neighbors.resize(1);
+  //  info.neighbors[0] = "IRobot2";
+  //  info.neighbors[1] = "IRobot3";
 
     info.posX = bin[robot.robotID][1];
 
