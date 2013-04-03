@@ -246,6 +246,66 @@ void RosThread::neighborInfoCallback(navigationISL::neighborInfo neighborInfo)
         return;
 
     }
+    else if(str.contains("Neighbors"))
+    {
+        QStringList list = str.split(";");
+
+        QVector<int> ids;
+
+        for(int i = 0; i < list.size(); i++)
+        {
+
+            if(list.at(i).contains("IRobot"))
+            {
+                QString ss = list.at(i);
+
+                ss.remove("IRobot");
+
+                ids.push_back(ss.toInt());
+            }
+            else if(list.at(i) == "0")
+            {
+                for(int j= 1; j <= numOfRobots; j++)
+                {
+                    if(j != this->robot.robotID)
+                    {
+                        bin[j][1] = 0;
+                        bin[j][2] = 0;
+                        bin[j][3] = 0;
+                    }
+
+                }
+                break;
+            }
+        }
+        if(ids.size() > 0)
+        {
+            for(int i = 1; i <= numOfRobots; i++)
+            {
+
+                for(int j = 0; j < ids.size(); j++)
+                {
+                    if(i != this->robot.robotID && i != ids.at(j))
+                    {
+                        bin[i][1] = 0;
+                        bin[i][2] = 0;
+                        bin[i][3] = 0;
+                    }
+
+                }
+
+            }
+        }
+
+        for(int k = 1; k <= numOfRobots; k++)
+        {
+            qDebug()<<"Bin value "<<k<<" "<<bin[k][3];
+        }
+
+        return;
+
+    }
+
 
     str.remove("IRobot");
 
