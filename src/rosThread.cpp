@@ -95,7 +95,7 @@ void RosThread::work(){
     emit rosStarted();
 
     this->amclSub = n.subscribe("amcl_pose",2,&RosThread::amclPoseCallback,this);
-    this->neighborInfoSubscriber = n.subscribe("communicationISL/neighborInfo",1,&RosThread::neighborInfoCallback,this);
+    this->neighborInfoSubscriber = n.subscribe("communicationISL/neighborInfo",5,&RosThread::neighborInfoCallback,this);
     // this->turtlebotOdometrySubscriber = n.subscribe("odom",2,&RosThread::turtlebotOdometryCallback,this);
 
 
