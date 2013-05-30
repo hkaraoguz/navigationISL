@@ -15,7 +15,7 @@
 #include <QDateTime>
 
 
-#define numOfRobots 5
+#define numOfRobots 3
 
 class Robot
 {
@@ -98,7 +98,7 @@ private:
      void calculateTurn(double desired, double current);
 
      void sendVelocityCommand();
-    // int numOfRobots;
+
 
      double vel[2]; // velocity vector
      double bin[numOfRobots+1][4];// positions including itself

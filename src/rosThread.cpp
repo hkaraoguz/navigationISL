@@ -12,21 +12,8 @@ RosThread::RosThread()
 {
     shutdown = false;
 
-    //  connect(poseUpdateTimer,SIGNAL(timeout()),this,SLOT(poseUpdate()));
-
-    // networkUpdateTimer = new QTimer(this);
-
-    // connect(networkUpdateTimer,SIGNAL(timeout()),this,SLOT(networkUpdate()));
-
-
 }
 
-/*RosThread::RosThread(int argc, char **argv, std::string nodeName){
-
-    //  ros::init(argc, argv, nodeName);
-
- //   ros::init(argc,argv,nodeName);
-}*/
 void RosThread::startModule()
 {
     pt.start();
@@ -218,8 +205,8 @@ void RosThread::amclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped:
     {
 
 
-        if(fabs(robot.targetX-bin[robot.robotID][1]) > 10 || fabs(robot.targetY-bin[robot.robotID][2]) > 10){
-            qDebug()<<"Linear";
+        if(fabs(robot.targetX-bin[robot.robotID][1]) > distanceThreshold || fabs(robot.targetY-bin[robot.robotID][2]) > distanceThreshold){
+           // qDebug()<<"Linear";
             velocityVector.linear.x = 0.15;
         }
         else
@@ -306,7 +293,6 @@ void RosThread::neighborInfoCallback(navigationISL::neighborInfo neighborInfo)
 
     }
 
-
     str.remove("IRobot");
 
     int num = str.toInt();
@@ -331,8 +317,6 @@ void RosThread::poseUpdate(const ros::TimerEvent&)
     navigationISL::robotInfo info;
 
     info.neighbors.resize(1);
-  //  info.neighbors[0] = "IRobot2";
-  //  info.neighbors[1] = "IRobot3";
 
     info.posX = bin[robot.robotID][1];
 
@@ -373,6 +357,7 @@ void RosThread::coordinatorUpdate(const ros::TimerEvent&)
     pt.start();
 
 }
+// Reads the config file
 bool RosThread::readConfigFile(QString filename)
 {
     QFile file(filename);
@@ -526,11 +511,13 @@ bool RosThread::readConfigFile(QString filename)
 
 
 }
+// Sends the velocity command to robot
 void RosThread::sendVelocityCommand()
 {
 
     turtlebotVelPublisher.publish(velocityVector);
 }
+// The odometry feedback from the robot (redundant)
 void RosThread::turtlebotOdometryCallback(const nav_msgs::Odometry &msg)
 {
 
