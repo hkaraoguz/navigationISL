@@ -22,7 +22,10 @@ void RosThread::startModule()
     bin[robot.robotID][1] = this->robot.initialX;
     bin[robot.robotID][2] = this->robot.initialY;
 
-    poseFile.setFileName("../pose.txt");
+    QString fileName = QDir::homePath();
+    fileName.append("/fuerte_workspace/sandbox/pose.txt");
+
+    poseFile.setFileName(fileName);
 
     poseFile.open(QFile::WriteOnly);
 
@@ -112,7 +115,7 @@ void RosThread::work(){
 
             NavigationController::robotContoller(vel, numOfRobots, obstacles.size(), partDist, bin, bt, b_rs, bp, ro, kkLimits, robot.robotID);
 
-            qDebug()<<"Velocities: "<<vel[0]<<vel[1];
+            //qDebug()<<"Velocities: "<<vel[0]<<vel[1];
 
             this->sendVelocityCommand();
         }
@@ -328,6 +331,7 @@ void RosThread::poseUpdate(const ros::TimerEvent&)
 
     info.radius = robot.radius;
 
+    qDebug()<<"posUpdate:"<<info.posX<<" "<<info.posY;
 
     robotinfoPublisher.publish(info);
 
