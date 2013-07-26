@@ -15,7 +15,7 @@
 #include <QDateTime>
 
 
-#define numOfRobots 3
+#define numOfRobots 5
 
 class Robot
 {
